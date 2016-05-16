@@ -4,6 +4,9 @@ import play.api.libs.json._
 import example.utils._
 import scala.concurrent.Future
 import example.model.AmazonProduct
+import example.utils.AmazonPageParser
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 
 /**
@@ -12,20 +15,18 @@ import example.model.AmazonProduct
 */
 object AmazonProducerExample {
   def main(args: Array[String]): Unit = {
-  	/*
-  	val productId = args(0)
-    val topicName = "amazonRatingsTopic"
-    val amazonPageParser = AmazonPageParser
+   
+  	val topicName = "amazonRatingsTopic"
+    
+   	val producer = Producer[String](topicName)
 
-    val producer = Producer[String](topicName)
+    //Scala Puzzlers...
+    AmazonPageParser.parse("0981531679").onSuccess { case amazonProduct =>
 
-    val amazonProduct = amazonPageParser.parse(productId)
-
-    implicit val writes = Json.writes[AmazonProduct]
-
-    producer.send(Json.toJson(amazonProduct).toString)
-    */
-    println("Done...")
+      implicit val amazonFormat = Json.format[AmazonProduct]
+      producer.send(Json.toJson(amazonProduct).toString)
+      println("amazon product sent to kafka cluster..." + amazonProduct.toString)
+    }
   }
 }
 

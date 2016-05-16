@@ -12,11 +12,6 @@ import example.producer._
 
 object AmazonPageParser {
 
-  private val topicName = "amazonRatingsTopic"
-    
-  private val producer = Producer[String](topicName)
-
-
   def parse(productId: String): Future[AmazonProduct] = {
     val url = s"http://www.amazon.com/dp/$productId"
     HttpClient.fetchUrl(url) map {
@@ -41,16 +36,5 @@ object AmazonPageParser {
           throw new RuntimeException(s"Invalid url $url")
         }
     }//map
-  }//parse method
-
-  def main(args: Array[String]): Unit = {
-   
-    //Scala Puzzlers...
-    AmazonPageParser.parse("0981531679").onSuccess { case amazonProduct =>
-
-      implicit val amazonFormat = Json.format[AmazonProduct]
-      producer.send(Json.toJson(amazonProduct).toString)
-      println("amazon product sent to kafka cluster..." + amazonProduct.toString)
-    }
-  }
+  }//parse method  
 }
