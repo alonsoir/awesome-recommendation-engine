@@ -16,16 +16,18 @@ import scala.concurrent.Future
 object AmazonProducerExample {
   def main(args: Array[String]): Unit = {
    
-  	val topicName = "amazonRatingsTopic"
+   	val productId = args(0).toString
+   	val topicName = "amazonRatingsTopic"
     
    	val producer = Producer[String](topicName)
 
-    //Scala Puzzlers...
-    AmazonPageParser.parse("0981531679").onSuccess { case amazonProduct =>
+    //0981531679 is Scala Puzzlers...
+    AmazonPageParser.parse(productId).onSuccess { case amazonProduct =>
 
       implicit val amazonFormat = Json.format[AmazonProduct]
       producer.send(Json.toJson(amazonProduct).toString)
       println("amazon product sent to kafka cluster..." + amazonProduct.toString)
+      System.exit(0)
     }
   }
 }
