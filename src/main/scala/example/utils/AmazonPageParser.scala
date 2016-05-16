@@ -17,7 +17,7 @@ object AmazonPageParser {
   private val producer = Producer[String](topicName)
 
 
-  def parse(productId: String): Unit = {
+  def parse(productId: String): Future[AmazonProduct] = {
     val url = s"http://www.amazon.com/dp/$productId"
     HttpClient.fetchUrl(url) map {
       httpResponse =>
@@ -34,10 +34,8 @@ object AmazonPageParser {
 
           val amazonProduct = AmazonProduct(productId, title, responseUrl, img, description)
 
-          implicit val amazonFormat = Json.format[AmazonProduct]
-
-          producer.send(Json.toJson(amazonProduct).toString)
-          println("amazon product sent to kafka cluster..." + amazonProduct.toString)
+          println("amazonProduct is " + amazonProduct.toString)
+          amazonProduct
         } else {
           println("An error happened!")
           throw new RuntimeException(s"Invalid url $url")
@@ -48,7 +46,11 @@ object AmazonPageParser {
   def main(args: Array[String]): Unit = {
    
     //Scala Puzzlers...
-    AmazonPageParser.parse("0981531679")
-    
+    AmazonPageParser.parse("0981531679").onSuccess { case amazonProduct =>
+
+      implicit val amazonFormat = Json.format[AmazonProduct]
+      producer.send(Json.toJson(amazonProduct).toString)
+      println("amazon product sent to kafka cluster..." + amazonProduct.toString)
+    }
   }
 }
