@@ -13,6 +13,8 @@ import example.producer._
 object AmazonPageParser {
 
   def parse(productId: String): Future[AmazonProduct] = {
+
+    println("Trying to parse product with id " + productId)
     val url = s"http://www.amazon.com/dp/$productId"
     HttpClient.fetchUrl(url) map {
       httpResponse =>
@@ -32,7 +34,7 @@ object AmazonPageParser {
           println("amazonProduct is " + amazonProduct.toString)
           amazonProduct
         } else {
-          println("An error happened!")
+          println("An error happened! " + httpResponse.getStatusCode)
           throw new RuntimeException(s"Invalid url $url")
         }
     }//map

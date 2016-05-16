@@ -12,6 +12,8 @@ import scala.concurrent.Future
 /**
 	args(0) : productId
 	args(1) : userdId
+
+	Usage: ./amazon-producer-example 0981531679
 */
 object AmazonProducerExample {
   def main(args: Array[String]): Unit = {
@@ -29,6 +31,7 @@ object AmazonProducerExample {
       println("amazon product sent to kafka cluster..." + amazonProduct.toString)
       System.exit(0)
     }
+
   }
 }
 
