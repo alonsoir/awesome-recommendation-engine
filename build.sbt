@@ -13,7 +13,11 @@ libraryDependencies ++= Seq(
       exclude("javax.jms", "jms")
       exclude("com.sun.jdmk", "jmxtools")
       exclude("com.sun.jmx", "jmxri"),
-      // HTTP client
+   //not working play module!! check
+   //jdbc,
+   //anorm,
+   //cache,
+   // HTTP client
    "net.databinder.dispatch" %% "dispatch-core" % "0.11.1",
    // HTML parser
    "org.jodd" % "jodd-lagarto" % "3.5.2",
@@ -40,3 +44,5 @@ libraryDependencies ++= Seq(
 )
 
 packAutoSettings
+
+//play.Project.playScalaSettings

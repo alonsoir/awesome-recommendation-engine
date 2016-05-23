@@ -12,4 +12,5 @@ case class AmazonProductAndRating(product: AmazonProduct, rating: AmazonRating)
 object AmazonRating {
   implicit val amazonRatingHandler = Macros.handler[AmazonRating]
   implicit val amazonRatingFormat = Json.format[AmazonRating]
+  lazy val empty: AmazonRating = AmazonRating("-1", "-1", -1d)
 }

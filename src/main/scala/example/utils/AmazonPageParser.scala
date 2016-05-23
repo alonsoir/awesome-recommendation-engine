@@ -1,7 +1,7 @@
 package example.utils
 
 import jodd.lagarto.dom.{NodeSelector, LagartoDOMBuilder}
-import example.model.AmazonProduct
+import example.model.{AmazonProduct,AmazonProductAndRating,AmazonRating}
 import scala.collection.JavaConversions._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -12,7 +12,12 @@ import example.producer._
 
 object AmazonPageParser {
 
-  def parse(productId: String): Future[AmazonProduct] = {
+  /**
+  * productId: String 
+  * userId: String
+  * rating: Double
+  */
+  def parse(productId: String,userId:String,rating:Double): Future[AmazonRating] = {
 
     println("Trying to parse product with id " + productId)
     val url = s"http://www.amazon.com/dp/$productId"
@@ -29,10 +34,14 @@ object AmazonPageParser {
           val img = nodeSelector.select("div#main-image-container img").head.getAttribute("src")
           val description = nodeSelector.select("div#feature-bullets").headOption.map(_.getHtml).mkString
 
-          val amazonProduct = AmazonProduct(productId, title, responseUrl, img, description)
+          //case class AmazonProductAndRating(product: AmazonProduct, rating: AmazonRating)
+          //val amazonProduct = AmazonProduct(productId, title, responseUrl, img, description)
+          //println("amazonProduct is " + amazonProduct.toString)
+          //I will have to include something from the http call... for now i let it as is
+          val amazonRating = AmazonRating(userId, productId, rating)
+          println("amazonRating is " + amazonRating.toString)
 
-          println("amazonProduct is " + amazonProduct.toString)
-          amazonProduct
+          amazonRating
         } else {
           println("An error happened! " + httpResponse.getStatusCode)
           throw new RuntimeException(s"Invalid url $url")

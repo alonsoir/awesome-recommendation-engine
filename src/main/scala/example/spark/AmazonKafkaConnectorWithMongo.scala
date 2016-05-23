@@ -3,6 +3,7 @@ package example.spark
 import java.io.File
 import java.util.Date
 
+import play.api.libs.json._
 import com.google.gson.{Gson,GsonBuilder, JsonParser}
 import org.apache.spark.streaming.{Seconds, StreamingContext}
 import org.apache.spark.{SparkConf, SparkContext}
@@ -14,14 +15,19 @@ import com.mongodb.QueryBuilder
 import com.mongodb.casbah.MongoClient
 import com.mongodb.casbah.commons.{MongoDBList, MongoDBObject}
 
+import reactivemongo.api.MongoDriver
+import reactivemongo.api.collections.default.BSONCollection
+import reactivemongo.bson.BSONDocument
 
 import org.apache.spark.streaming.kafka._
 import kafka.serializer.StringDecoder
+import example.model._
 
+import example.utils.Recommender
 //import com.github.nscala_time.time.Imports._
 
 /**
- * Collect at least the specified number of json amazon products into mongo...
+ * Collect at least the specified number of json amazon products in order to feed recomedation system and feed mongo instance with results.
 
 Usage: ./amazon-kafka-connector 127.0.0.1:9092 amazonRatingsTopic
 
@@ -38,7 +44,7 @@ object AmazonKafkaConnector {
   
   //this settings must be in reference.conf
   private val Database = "alonsodb"
-  private val Collection = "amazonRatings"
+  private val ratingCollection = "amazonRatings"
   private val MongoHost = "127.0.0.1"
   private val MongoPort = 27017
   private val MongoProvider = "com.stratio.datasource.mongodb"
@@ -62,7 +68,7 @@ object AmazonKafkaConnector {
   }
 
   private def cleanMongoData(client: MongoClient): Unit = {
-      val collection = client(Database)(Collection)
+      val collection = client(Database)(ratingCollection)
       collection.dropCollection()
   }
 
@@ -78,21 +84,76 @@ object AmazonKafkaConnector {
 
     println("Initializing Streaming Spark Context and kafka connector...")
     // Create context with 2 second batch interval
-    val sparkConf = new SparkConf().setAppName("AmazonKafkaConnector").setMaster("local[4]").set("spark.driver.allowMultipleContexts", "true")
-    val sc = new SparkContext(sparkConf)
-    val ssc = new StreamingContext(sparkConf, Seconds(2))
+    val sparkConf = new SparkConf().setAppName("AmazonKafkaConnector")
+                                   .setMaster("local[4]")
+                                    .set("spark.driver.allowMultipleContexts", "true")
 
+    val sc = new SparkContext(sparkConf)
+    sc.addJar("target/scala-2.10/blog-spark-recommendation_2.10-1.0-SNAPSHOT.jar")
+    val ssc = new StreamingContext(sparkConf, Seconds(2))
+    //val streamingCheckpointDir = "someDir"
+    //ssc.checkpoint(streamingCheckpointDir)
+    
     // Create direct kafka stream with brokers and topics
     val topicsSet = topics.split(",").toSet
     val kafkaParams = Map[String, String]("metadata.broker.list" -> brokers)
     val messages = KafkaUtils.createDirectStream[String, String, StringDecoder, StringDecoder](ssc, kafkaParams, topicsSet)
+    println("Initialized Streaming Spark Context and kafka connector...")
+
+    //create recomendation module
+    println("Creating rating recommender module...")
+    val ratingFile= "ratings.csv"
+    val recommender = new Recommender(sc,ratingFile)
+    println("Initialized rating recommender module...")
+      
+
+    //i have to convert messages which is a InputDStream into a Seq...
+    //val amazonRatings = recommender.predict(messages.take(MaxRecommendations)).toSeq
+    try{
+    messages.foreachRDD( rdd =>{
+      val count = rdd.count()
+      if (count > 0){
+        //someMessages should be AmazonRating...
+        val someMessages = rdd.take(count.toInt)
+        println("<------>")
+        println("someMessages is " + someMessages)
+        someMessages.foreach(println)
+        println("<------>")
+        //implicit val amazonRatingFormat = Json.format[AmazonRating]
+        println("<---POSSIBLE SOLUTION--->")
+        messages
+        .map { case (_, jsonRating) => 
+          val jsValue = Json.parse(jsonRating)
+          AmazonRating.amazonRatingFormat.reads(jsValue) match {
+            case JsSuccess(rating, _) => rating
+            case JsError(_) => AmazonRating.empty
+          }
+             }
+        .filter(_ != AmazonRating.empty)
+        //this line provokes an exception...
+        //.foreachRDD(_.foreachPartition(recommender.predict(_.toSeq)))
+          
+        println("<---POSSIBLE SOLUTION--->")
+        
+      }
+      }
+    )
+    }catch{
+      case e: IllegalArgumentException => println("illegal arg. exception");
+      case e: IllegalStateException    => println("illegal state exception");
+      //case e: IOException              => println("IO exception");
+      case e: ClassCastException       => println("ClassCastException");
+    }finally{
+
+      println("Finished taking data from kafka topic...")
+    }
     
-    println("Initialized Streaming Spark Context and kafka connector...")  
+    //println("jsonParsed is " + jsonParsed)
 
     println("Initializing mongodb connector...")
 
     val mongoClient = prepareMongoEnvironment()
-    val collection = mongoClient(Database)(Collection)
+    val collection = mongoClient(Database)(ratingCollection)
     
     println("Initialized mongodb connector...")
 
@@ -100,13 +161,13 @@ object AmazonKafkaConnector {
         val sqlContext = new SQLContext(sc)
         println("Creating temporary table in mongo instance...")
         sqlContext.sql(
-            s"""|CREATE TEMPORARY TABLE $Collection
+            s"""|CREATE TEMPORARY TABLE $ratingCollection
               |(id STRING, amazonProduct STRING)
               |USING $MongoProvider
               |OPTIONS (
               |host '$MongoHost:$MongoPort',
               |database '$Database',
-              |collection '$Collection'
+              |collection '$ratingCollection'
               |)
             """.stripMargin.replaceAll("\n", " "))
 
@@ -135,7 +196,7 @@ object AmazonKafkaConnector {
         })//messages.foreachRDD(rdd =>
         
         //studentsDF.where(studentsDF("age") > 15).groupBy(studentsDF("enrolled")).agg(avg("age"), max("age")).show(5)
-        val amazonProductsCollectedDF = sqlContext.read.format("com.stratio.datasource.mongodb").table(s"$Collection")
+        val amazonProductsCollectedDF = sqlContext.read.format("com.stratio.datasource.mongodb").table(s"$ratingCollection")
         amazonProductsCollectedDF.show(5)
         println("tested a mongodb connection with stratio library...")
     } finally {
