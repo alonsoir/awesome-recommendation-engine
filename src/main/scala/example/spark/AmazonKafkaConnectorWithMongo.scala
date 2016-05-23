@@ -129,8 +129,8 @@ object AmazonKafkaConnector {
           }
              }
         .filter(_ != AmazonRating.empty)
-        //this line provokes an exception...
-        //.foreachRDD(_.foreachPartition(recommender.predict(_.toSeq)))
+        //this line provokes an compile error...
+        .foreachRDD(_.foreachPartition(recommender.predict(_.toSeq)))
           
         println("<---POSSIBLE SOLUTION--->")
         
