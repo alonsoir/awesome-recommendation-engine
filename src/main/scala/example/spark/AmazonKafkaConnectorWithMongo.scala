@@ -119,7 +119,6 @@ object AmazonKafkaConnector {
         println("someMessages is " + someMessages)
         someMessages.foreach(println)
         println("<------>")
-        //implicit val amazonRatingFormat = Json.format[AmazonRating]
         println("<---POSSIBLE SOLUTION--->")
         messages
         .map { case (_, jsonRating) => 
@@ -141,7 +140,6 @@ object AmazonKafkaConnector {
     }catch{
       case e: IllegalArgumentException => println("illegal arg. exception");
       case e: IllegalStateException    => println("illegal state exception");
-      //case e: IOException              => println("IO exception");
       case e: ClassCastException       => println("ClassCastException");
     }finally{
 
@@ -149,7 +147,8 @@ object AmazonKafkaConnector {
     }
     
     //println("jsonParsed is " + jsonParsed)
-
+    //The idea is to save results from Recommender.predict within mongodb, so i will have to deal with this issue 
+    //after resolving the issue of .foreachRDD(_.foreachPartition(recommender.predict(_.toSeq)))
     println("Initializing mongodb connector...")
 
     val mongoClient = prepareMongoEnvironment()
