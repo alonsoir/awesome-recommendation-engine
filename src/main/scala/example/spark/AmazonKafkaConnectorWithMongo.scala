@@ -130,7 +130,7 @@ object AmazonKafkaConnector {
              }
         .filter(_ != AmazonRating.empty)
         //this line provokes an compile error...
-        .foreachRDD(_.foreachPartition(recommender.predict(_.toSeq)))
+        .foreachRDD(_.foreachPartition(it => recommender.predictWithALS(it.toSeq)))
           
         println("<---POSSIBLE SOLUTION--->")
         
@@ -138,9 +138,10 @@ object AmazonKafkaConnector {
       }
     )
     }catch{
-      case e: IllegalArgumentException => println("illegal arg. exception");
-      case e: IllegalStateException    => println("illegal state exception");
-      case e: ClassCastException       => println("ClassCastException");
+      case e: IllegalArgumentException => {println("illegal arg. exception")};
+      case e: IllegalStateException    => {println("illegal state exception")};
+      case e: ClassCastException       => {println("ClassCastException")};
+      case e: Exception                => {println(" Generic Exception")};
     }finally{
 
       println("Finished taking data from kafka topic...")
@@ -149,6 +150,7 @@ object AmazonKafkaConnector {
     //println("jsonParsed is " + jsonParsed)
     //The idea is to save results from Recommender.predict within mongodb, so i will have to deal with this issue 
     //after resolving the issue of .foreachRDD(_.foreachPartition(recommender.predict(_.toSeq)))
+    /*
     println("Initializing mongodb connector...")
 
     val mongoClient = prepareMongoEnvironment()
@@ -202,7 +204,7 @@ object AmazonKafkaConnector {
         //sc.stop()
         println("finished withSQLContext...")
     }
-
+  */
     ssc.start()
     ssc.awaitTermination()
 

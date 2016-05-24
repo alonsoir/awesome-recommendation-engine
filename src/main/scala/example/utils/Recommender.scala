@@ -53,7 +53,7 @@ class Recommender(@transient sc: SparkContext, ratingFile: String) extends Seria
 
   def getRandomProductId = productDict.getWord(random.nextInt(productDict.size))
 
-  def predict(ratings: Seq[AmazonRating]) = {
+  def predictWithALS(ratings: Seq[AmazonRating]) = {
     // train model
     val myRatings = ratings.map(toSparkRating)
     val myRatingRDD = sc.parallelize(myRatings)
