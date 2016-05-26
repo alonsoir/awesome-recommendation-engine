@@ -12,7 +12,8 @@ import scala.concurrent.Future
 /**
 	args(0) : productId
 	args(1) : userdId
-
+  args(2) : rating
+  Proof of concept about how to push data within a kafka topic
 	Usage: ./amazon-producer-example 0981531679 someUserId 3.0
 */
 object AmazonProducerExample {

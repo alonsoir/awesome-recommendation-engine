@@ -89,10 +89,12 @@ object AmazonKafkaConnector {
                                     .set("spark.driver.allowMultipleContexts", "true")
 
     val sc = new SparkContext(sparkConf)
+    val sqlContext = new SQLContext(sc)
     sc.addJar("target/scala-2.10/blog-spark-recommendation_2.10-1.0-SNAPSHOT.jar")
     val ssc = new StreamingContext(sparkConf, Seconds(2))
-    //val streamingCheckpointDir = "someDir"
-    //ssc.checkpoint(streamingCheckpointDir)
+    //this checkpointdir should be in a conf file, for now it is hardcoded!
+    val streamingCheckpointDir = "/Users/aironman/my-recommendation-spark-engine/checkpoint"
+    ssc.checkpoint(streamingCheckpointDir)
     
     // Create direct kafka stream with brokers and topics
     val topicsSet = topics.split(",").toSet
@@ -105,38 +107,23 @@ object AmazonKafkaConnector {
     val ratingFile= "ratings.csv"
     val recommender = new Recommender(sc,ratingFile)
     println("Initialized rating recommender module...")
-      
 
-    //i have to convert messages which is a InputDStream into a Seq...
-    //val amazonRatings = recommender.predict(messages.take(MaxRecommendations)).toSeq
     try{
-    messages.foreachRDD( rdd =>{
-      val count = rdd.count()
-      if (count > 0){
-        //someMessages should be AmazonRating...
-        val someMessages = rdd.take(count.toInt)
-        println("<------>")
-        println("someMessages is " + someMessages)
-        someMessages.foreach(println)
-        println("<------>")
-        println("<---POSSIBLE SOLUTION--->")
-        messages
-        .map { case (_, jsonRating) => 
-          val jsValue = Json.parse(jsonRating)
-          AmazonRating.amazonRatingFormat.reads(jsValue) match {
-            case JsSuccess(rating, _) => rating
-            case JsError(_) => AmazonRating.empty
-          }
-             }
-        .filter(_ != AmazonRating.empty)
-        //this line provokes an compile error...
-        .foreachRDD(_.foreachPartition(it => recommender.predictWithALS(it.toSeq)))
-          
-        println("<---POSSIBLE SOLUTION--->")
-        
-      }
-      }
-    )
+    messages.foreachRDD(rdd => {
+     val count = rdd.count()
+     if (count > 0){
+       val json= rdd.map(_._2)
+       val dataFrame = sqlContext.read.json(json) //converts json to DF
+       val myRow = dataFrame.select(dataFrame("userId"),dataFrame("productId"),dataFrame("rating")).take(count.toInt)
+       println("myRow is: " + myRow)
+       //case class AmazonRating(userId: String, productId: String, rating: Double)
+       val myAmazonRating = AmazonRating(myRow(0).getString(0), myRow(0).getString(1), myRow(0).getDouble(2))
+       println("myAmazonRating is: " + myAmazonRating.toString)
+       val arrayAmazonRating = Array(myAmazonRating)
+       //this method needs Seq[AmazonRating]
+       recommender.predictWithALS(arrayAmazonRating.toSeq)
+       }//if
+    })      
     }catch{
       case e: IllegalArgumentException => {println("illegal arg. exception")};
       case e: IllegalStateException    => {println("illegal state exception")};
@@ -147,6 +134,7 @@ object AmazonKafkaConnector {
       println("Finished taking data from kafka topic...")
     }
     
+
     //println("jsonParsed is " + jsonParsed)
     //The idea is to save results from Recommender.predict within mongodb, so i will have to deal with this issue 
     //after resolving the issue of .foreachRDD(_.foreachPartition(recommender.predict(_.toSeq)))
