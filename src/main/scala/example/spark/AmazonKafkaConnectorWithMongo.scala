@@ -86,7 +86,7 @@ object AmazonKafkaConnector {
     // Create context with 2 second batch interval
     val sparkConf = new SparkConf().setAppName("AmazonKafkaConnector")
                                    //.setMaster("local[4]")
-                                   .setMaster("spark://quickstart.cloudera:7077")
+                                   .setMaster("spark://192.168.30.138:7077")
                                    .set("spark.driver.allowMultipleContexts", "true")
 
     val sc = new SparkContext(sparkConf)
