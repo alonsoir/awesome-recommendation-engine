@@ -14,7 +14,7 @@ import scala.concurrent.Future
 	args(1) : userdId
   args(2) : rating
   Proof of concept about how to push data within a kafka topic
-	Usage: ./amazon-producer-example 0981531679 someUserId 3.0
+	Usage: ./amazon-producer-example 0981531679 A2OAG3QXW7A3RA 3.0
 */
 object AmazonProducerExample {
   def main(args: Array[String]): Unit = {
@@ -24,10 +24,17 @@ object AmazonProducerExample {
     val rating = args(2).toDouble
    	val topicName = "amazonRatingsTopic"
     
-   	val producer = Producer[String](topicName)
+    println("Invoking amazon-producer-example with next parameters: ")
+    println("productId: " + productId)
+    println("userId: " + userId)
+    println("rating: " + rating)
+   	println("topicName: " + topicName)
+
+    val producer = Producer[String](topicName)
 
     //0981531679 is Scala Puzzlers...
     //AmazonProductAndRating
+    //def parse(productId: String,userId:String,rating:Double): Future[AmazonRating]
     AmazonPageParser.parse(productId,userId,rating).onSuccess { case amazonRating =>
       //Is this the correct way? the best performance? possibly not, what about using avro or parquet?
       producer.send(Json.toJson(amazonRating).toString)

@@ -38,6 +38,7 @@ object AmazonPageParser {
           //val amazonProduct = AmazonProduct(productId, title, responseUrl, img, description)
           //println("amazonProduct is " + amazonProduct.toString)
           //I will have to include something from the http call... for now i let it as is
+          //case class AmazonRating(userId: String, productId: String, rating: Double)
           val amazonRating = AmazonRating(userId, productId, rating)
           println("amazonRating is " + amazonRating.toString)
 

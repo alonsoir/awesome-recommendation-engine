@@ -85,12 +85,13 @@ object AmazonKafkaConnector {
     println("Initializing Streaming Spark Context and kafka connector...")
     // Create context with 2 second batch interval
     val sparkConf = new SparkConf().setAppName("AmazonKafkaConnector")
-                                   .setMaster("local[4]")
-                                    .set("spark.driver.allowMultipleContexts", "true")
+                                   //.setMaster("local[4]")
+                                   .setMaster("spark://quickstart.cloudera:7077")
+                                   .set("spark.driver.allowMultipleContexts", "true")
 
     val sc = new SparkContext(sparkConf)
     val sqlContext = new SQLContext(sc)
-    sc.addJar("target/scala-2.10/blog-spark-recommendation_2.10-1.0-SNAPSHOT.jar")
+    //sc.addJar("target/scala-2.10/blog-spark-recommendation_2.10-1.0-SNAPSHOT.jar")
     val ssc = new StreamingContext(sparkConf, Seconds(2))
     //this checkpointdir should be in a conf file, for now it is hardcoded!
     val streamingCheckpointDir = "/Users/aironman/my-recommendation-spark-engine/checkpoint"
@@ -104,7 +105,8 @@ object AmazonKafkaConnector {
 
     //create recomendation module
     println("Creating rating recommender module...")
-    val ratingFile= "ratings.csv"
+    //val ratingFile= "/Users/aironman/my-recommendation-spark-engine/ratings.csv"
+    val ratingFile= "hdfs:////quickstart.cloudera:8020/ratings.csv"
     val recommender = new Recommender(sc,ratingFile)
     println("Initialized rating recommender module...")
 
@@ -121,7 +123,7 @@ object AmazonKafkaConnector {
        println("myAmazonRating is: " + myAmazonRating.toString)
        val arrayAmazonRating = Array(myAmazonRating)
        //this method needs Seq[AmazonRating]
-       recommender.predictWithALS(arrayAmazonRating.toSeq)
+       recommender.predict(arrayAmazonRating.toSeq)
        }//if
     })      
     }catch{
@@ -134,65 +136,6 @@ object AmazonKafkaConnector {
       println("Finished taking data from kafka topic...")
     }
     
-
-    //println("jsonParsed is " + jsonParsed)
-    //The idea is to save results from Recommender.predict within mongodb, so i will have to deal with this issue 
-    //after resolving the issue of .foreachRDD(_.foreachPartition(recommender.predict(_.toSeq)))
-    /*
-    println("Initializing mongodb connector...")
-
-    val mongoClient = prepareMongoEnvironment()
-    val collection = mongoClient(Database)(ratingCollection)
-    
-    println("Initialized mongodb connector...")
-
-    try {
-        val sqlContext = new SQLContext(sc)
-        println("Creating temporary table in mongo instance...")
-        sqlContext.sql(
-            s"""|CREATE TEMPORARY TABLE $ratingCollection
-              |(id STRING, amazonProduct STRING)
-              |USING $MongoProvider
-              |OPTIONS (
-              |host '$MongoHost:$MongoPort',
-              |database '$Database',
-              |collection '$ratingCollection'
-              |)
-            """.stripMargin.replaceAll("\n", " "))
-
-        messages.foreachRDD(rdd => {
-          val count = rdd.count()
-          if (count>0) {
-            val topList = rdd.take(count.toInt)
-            println("\nReading data from kafka broker... (%s total):".format(rdd.count()))
-            topList.foreach(println)
-            //println
-            
-            for (amazonProduct <- topList) {
-               collection.insert {MongoDBObject("id" -> new Date(),"amazonProduct" -> amazonProduct)}
-            }//for (tweet <- topList)
-            
-            numAmazonProductCollected += count
-            if (numAmazonProductCollected > numAmazonProductToCollect) {
-              println
-              println("amazonProduct > amazonProduct condition is reached. Stopping..." + numAmazonProductCollected + " " + count)
-              //cleanMongoEnvironment(mongoClient)
-              closeMongoEnviroment(mongoClient)
-              println("shutdown mongodb connector...")
-              System.exit(0)
-            }
-          }//if(count>0)
-        })//messages.foreachRDD(rdd =>
-        
-        //studentsDF.where(studentsDF("age") > 15).groupBy(studentsDF("enrolled")).agg(avg("age"), max("age")).show(5)
-        val amazonProductsCollectedDF = sqlContext.read.format("com.stratio.datasource.mongodb").table(s"$ratingCollection")
-        amazonProductsCollectedDF.show(5)
-        println("tested a mongodb connection with stratio library...")
-    } finally {
-        //sc.stop()
-        println("finished withSQLContext...")
-    }
-  */
     ssc.start()
     ssc.awaitTermination()
 

@@ -4,7 +4,7 @@ import example.model.AmazonRating
 import org.apache.spark.SparkContext
 import org.apache.spark.mllib.recommendation.{ALS, Rating}
 import org.joda.time.{Seconds, DateTime}
-
+import scala.io.Source
 import scala.util.Random
 
 class Recommender(@transient sc: SparkContext, ratingFile: String) extends Serializable {
@@ -15,6 +15,8 @@ class Recommender(@transient sc: SparkContext, ratingFile: String) extends Seria
   val NumPartitions = 20
 
   @transient val random = new Random() with Serializable
+
+  println("Using this ratingFile: " + ratingFile)
   // first create an RDD out of the rating file
   val rawTrainingRatings = sc.textFile(ratingFile).map {
     line =>
@@ -33,7 +35,9 @@ class Recommender(@transient sc: SparkContext, ratingFile: String) extends Seria
 
   // create user and item dictionaries
   val userDict = new Dictionary(MyUsername +: trainingRatings.map(_.userId).distinct.collect)
+  println("User Dictionary have " + userDict.size + " elements.")
   val productDict = new Dictionary(trainingRatings.map(_.productId).distinct.collect)
+  println("Product Dictionary have " + productDict.size + " elements.")
 
   private def toSparkRating(amazonRating: AmazonRating) = {
     Rating(userDict.getIndex(amazonRating.userId),
@@ -53,11 +57,9 @@ class Recommender(@transient sc: SparkContext, ratingFile: String) extends Seria
 
   def getRandomProductId = productDict.getWord(random.nextInt(productDict.size))
 
-  def predictWithALS(ratings: Seq[AmazonRating]) = {
-    //def predictWithALS(ratings: AmazonRating) = {
+  def predict(ratings: Seq[AmazonRating]) = {
     // train model
     val myRatings = ratings.map(toSparkRating)
-    //val myRatings = toSparkRating(ratings)
     val myRatingRDD = sc.parallelize(myRatings)
 
     val startAls = DateTime.now
