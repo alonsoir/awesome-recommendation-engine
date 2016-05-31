@@ -86,7 +86,7 @@ object AmazonKafkaConnector {
     // Create context with 2 second batch interval
     val sparkConf = new SparkConf().setAppName("AmazonKafkaConnector")
                                    //.setMaster("local[4]")
-                                   .setMaster("spark://192.168.30.138:7077")
+                                   .setMaster("spark://quickstart.cloudera:7077")
                                    .set("spark.driver.allowMultipleContexts", "true")
 
     val sc = new SparkContext(sparkConf)
@@ -106,7 +106,7 @@ object AmazonKafkaConnector {
     //create recomendation module
     println("Creating rating recommender module...")
     //val ratingFile= "/Users/aironman/my-recommendation-spark-engine/ratings.csv"
-    val ratingFile= "hdfs:////quickstart.cloudera:8020/ratings.csv"
+    val ratingFile= "hdfs://quickstart.cloudera:8020/user/cloudera/ratings.csv"
     val recommender = new Recommender(sc,ratingFile)
     println("Initialized rating recommender module...")
 
