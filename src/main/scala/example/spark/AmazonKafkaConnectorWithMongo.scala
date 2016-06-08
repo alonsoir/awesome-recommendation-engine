@@ -29,7 +29,33 @@ import example.utils.Recommender
 /**
  * Collect at least the specified number of json amazon products in order to feed recomedation system and feed mongo instance with results.
 
-Usage: ./amazon-kafka-connector 127.0.0.1:9092 amazonRatingsTopic
+Usage: ./amazon-kafka-connector 127.0.0.1:9092 amazonRatingsTopic 
+
+Usage: nohup ./amazon-kafka-connector 192.168.1.35:9092 amazonRatingsTopic > nohup.out
+
+where $1 is kafka broker and $2 is kafka-topicval ratingFile="hdfs://127.0.0.1:8020/user/cloudera/ratings.csv"
+
+case class AmazonRating(userId: String, productId: String, rating: Double)
+
+val NumRecommendations = 10
+val MinRecommendationsPerUser = 10
+val MaxRecommendationsPerUser = 20
+val MyUsername = "myself"
+val NumPartitions = 20
+
+  
+println("Using this ratingFile: " + ratingFile)
+  // first create an RDD out of the rating file
+val rawTrainingRatings = sc.textFile(ratingFile).map {
+    line =>
+      val Array(userId, productId, scoreStr) = line.split(",")
+      AmazonRating(userId, productId, scoreStr.toDouble)
+}
+
+  // only keep users that have rated between MinRecommendationsPerUser and MaxRecommendationsPerUser products
+val trainingRatings = rawTrainingRatings.groupBy(_.userId).filter(r => MinRecommendationsPerUser <= r._2.size  && r._2.size < MaxRecommendationsPerUser).flatMap(_._2).repartition(NumPartitions).cache()
+
+println(s"Parsed $ratingFile. Kept ${trainingRatings.count()} ratings out of ${rawTrainingRatings.count()}")
 
 on mongo shell:
 
@@ -85,8 +111,8 @@ object AmazonKafkaConnector {
     println("Initializing Streaming Spark Context and kafka connector...")
     // Create context with 2 second batch interval
     val sparkConf = new SparkConf().setAppName("AmazonKafkaConnector")
-                                   //.setMaster("local[4]")
-                                   .setMaster("spark://quickstart.cloudera:7077")
+                                   .setMaster("local[4]")
+                                   //.setMaster("spark://quickstart.cloudera:7077")
                                    .set("spark.driver.allowMultipleContexts", "true")
 
     val sc = new SparkContext(sparkConf)

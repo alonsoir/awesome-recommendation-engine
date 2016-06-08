@@ -14,7 +14,13 @@ import scala.concurrent.Future
 	args(1) : userdId
   args(2) : rating
   Proof of concept about how to push data within a kafka topic
-	Usage: ./amazon-producer-example 0981531679 A2OAG3QXW7A3RA 3.0
+  
+  ATTENTION!
+  The product from amazon (B000WFORH0) is :
+
+  https://www.amazon.com/Wellness-Complete-Natural-Food-12-5-Ounce/dp/B000WFORH0?ie=UTF8&*Version*=1&*entries*=0
+  
+  Usage: ./amazon-producer-example B000WFORH0 A2OAG3QXW7A3RA 3.0
 */
 object AmazonProducerExample {
   def main(args: Array[String]): Unit = {
