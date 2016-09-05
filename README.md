@@ -2,10 +2,10 @@
 
 	The idea of the project comes from the big data course that i received from formacionhadoop.com
 
-	This is the components:
+	These are the components:
 	
 	A kafka producer is going to ask periodically to Amazon in order to know what products based on my own ratings 
-	and i am going to introduced them in some topic.
+	and i am going to introduced them into some kafka topic.
 	
 	A spark streaming process is going to read from that previous topic.
 	
@@ -21,7 +21,6 @@
 	https://github.com/alonsoir/hello-kafka-twitter-scala
 
 	https://github.com/alonsoir/recomendation-spark-engine
-
 
 	Actually the project can push data to kafka topic, the spark streaming process can recover data from the topic and
 	save them into mongo instance.
@@ -87,6 +86,6 @@
 
 
 	Things to do:
-
-	Apply machine learning algorithms to data before saving to mongo instance...
+	
+	Saving to mongo instance the results from ALS algorithm...
 	have fun in the process!
