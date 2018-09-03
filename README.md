@@ -1,66 +1,69 @@
+# Awesome Recommendation Engine
+
 The purpose of this project is to learn the basics about how to code a almost near real time 
 rating based recommendation engine. The simple idea is to calculate recomendations of 
 different items using notes that other users have given to other products, 
 recalculating as quickly as possible, that is, as soon as the note has arrived in the system.
 
-These are the components:
-	
-A kafka producer is going to ask periodically to Amazon in order to know what products based on 
-my own ratings and i am going to introduced them into some kafka topic.
-	
-A spark streaming process is going to read from that previous topic.
-	
-Apply some machine learning algorithms (ALS, content based filtering colaborative filtering) on those datasets readed by 
-the spark streaming process and save the result to somewhere, a mongo instance.
+## These are the components:
 
+ - A kafka producer is going to ask periodically to Amazon in order to know what products based on my own ratings 
+and i am going to introduced them into some kafka topic.
 
+ - A spark streaming process is going to read from that previous topic.
+
+### Steps 
+ 
+ - Apply some machine learning algorithms ([ALS][1], [content based filtering colaborative filtering][2]) on those datasets readed by 
+the spark streaming process.
+
+ - Save results in a mongo or cassandra instance.
+
+ - Use play framework to create an websocket interface between the mongo instance and the visual interface.
+
+ 
 I am going to use some ideas from a previous work: 
 
-	https://github.com/alonsoir/hello-kafka-twitter-scala
+[hello-kafka-twitter-scala](https://github.com/alonsoir/hello-kafka-twitter-scala)
 
-	https://github.com/alonsoir/recomendation-spark-engine
+[recomendation-spark-engine](https://github.com/alonsoir/recomendation-spark-engine)
 
 Actually the project can push data to kafka topic, the spark streaming process can recover data from the topic and
 save them into mongo instance.
 
-Actual output:
-
-	$ ./amazon-kafka-connector 127.0.0.1:9092 amazonRatingsTopic
-
-	Initializing Streaming Spark Context and kafka connector...
-	Using Spark's default log4j profile: org/apache/spark/log4j-defaults.properties
-	16/05/16 18:48:49 INFO SparkContext: Running Spark version 1.6.1
-	16/05/16 18:48:49 WARN NativeCodeLoader: Unable to load native-hadoop library for your platform... using builtin-java classes where applicable
-	...
-	16/05/16 18:48:51 INFO VerifiableProperties: Verifying properties
-	16/05/16 18:48:51 INFO VerifiableProperties: Property group.id is overridden to 
-	16/05/16 18:48:51 INFO VerifiableProperties: Property zookeeper.connect is overridden to 
-	Initialized Streaming Spark Context and kafka connector...
-	Initializing mongodb connector...
-	Initialized mongodb connector...
-	Creating temporary table in mongo instance...
-	16/05/16 18:48:52 INFO SparkContext: Starting job: show at AmazonKafkaConnectorWithMongo.scala:137
-	16/05/16 18:48:53 INFO DAGScheduler: Got job 0 (show at AmazonKafkaConnectorWithMongo.scala:137) with 1 output partitions
-	...
-	16/05/16 18:48:53 INFO DAGScheduler: Job 0 finished: show at AmazonKafkaConnectorWithMongo.scala:137, took 0,250144 s
-	+--------------------+--------------------+
-	|                  id|       amazonProduct|
-	+--------------------+--------------------+
-	|Mon May 16 18:41:...|[  null  , "{\"it...|
-	|Mon May 16 18:42:...|[  null  , "{\"it...|
-	|Mon May 16 18:45:...|[  null  , "{\"it...|
-	+--------------------+--------------------+
-
-	tested a mongodb connection with stratio library...
-	finished withSQLContext...
-	16/05/16 18:48:53 INFO BlockManagerInfo: Removed broadcast_0_piece0 on localhost:57536 in memory (size: 2.5 KB, free: 2.4 GB)
-	...
-	16/05/16 18:48:57 INFO StreamingContext: Invoking stop(stopGracefully=false) from shutdown hook
-	16/05/16 18:48:57 INFO JobGenerator: Stopping JobGenerator immediately
-	16/05/16 18:48:57 INFO RecurringTimer: Stopped timer for JobGenerator after time 1463417336000
-	16/05/16 18:48:57 INFO JobGenerator: Stopped JobGenerator
-	16/05/16 18:48:57 INFO JobScheduler: Stopped JobScheduler
-	Finished!
+### Actual output:
+    $ ./amazon-kafka-connector 127.0.0.1:9092 amazonRatingsTopic
+	  Initializing Streaming Spark Context and kafka connector...
+	  Using Spark's default log4j profile: org/apache/spark/log4j-defaults.properties
+	  16/05/16 18:48:49 INFO SparkContext: Running Spark version 1.6.1
+	  16/05/16 18:48:49 WARN NativeCodeLoader: Unable to load native-hadoop library for your platform... using builtin-java classes where applicable
+	  ...
+	  16/05/16 18:48:51 INFO VerifiableProperties: Verifying properties
+	  16/05/16 18:48:51 INFO VerifiableProperties: Property group.id is overridden to 
+	  16/05/16 18:48:51 INFO VerifiableProperties: Property zookeeper.connect is overridden to 
+	  Initialized Streaming Spark Context and kafka connector...
+	  Initializing mongodb connector...
+	  Initialized mongodb connector...
+	  Creating temporary table in mongo instance...
+	  16/05/16 18:48:52 INFO SparkContext: Starting job: show at AmazonKafkaConnectorWithMongo.scala:137
+	  16/05/16 18:48:53 INFO DAGScheduler: Got job 0 (show at AmazonKafkaConnectorWithMongo.scala:137) with 1 output partitions
+	  ...
+	  16/05/16 18:48:53 INFO DAGScheduler: Job 0 finished: show at AmazonKafkaConnectorWithMongo.scala:137, took 0,250144 s
+	  +--------------------+--------------------+
+	  |                  id|       amazonProduct|
+	  +--------------------+--------------------+
+	  |Mon May 16 18:41:...|[  null  , "{\"it...|
+	  |Mon May 16 18:42:...|[  null  , "{\"it...|
+	  |Mon May 16 18:45:...|[  null  , "{\"it...|
+	  +--------------------+--------------------+
+  	16/05/16 18:48:53 INFO BlockManagerInfo: Removed broadcast_0_piece0 on localhost:57536 in memory (size: 2.5 KB, free: 2.4 GB)
+	  ...
+	  16/05/16 18:48:57 INFO StreamingContext: Invoking stop(stopGracefully=false) from shutdown hook
+	  16/05/16 18:48:57 INFO JobGenerator: Stopping JobGenerator immediately
+	  16/05/16 18:48:57 INFO RecurringTimer: Stopped timer for JobGenerator after time 1463417336000
+	  16/05/16 18:48:57 INFO JobGenerator: Stopped JobGenerator
+	  16/05/16 18:48:57 INFO JobScheduler: Stopped JobScheduler
+	  Finished!
 
 Next, i am going to ask to amazon for a product using a productId. Of course, this should be a RESTful get petition or something like that, but i implemented a unix command.
 
@@ -88,3 +91,19 @@ Yeah, i have data in the mongo instance, i should find if previous data exists w
 The idea of the project comes from a course about  bigdata technology that i received from formacionhadoop.com. 
 I have to consolidate and to practice with scala, spark streaming, spark-ml, kafka and mongo.
 In a future, i would like to rewrite this project from scratch, with the microservices style, restful operations to interact with Amazon, packaging with docker images, kafka, spark streaming and spark-ml, latests versions. 
+
+## Things to do:
+
+ - Saving to mongo instance the results from ALS algorithm... DONE!
+ - Rewrite the whole project using the microservice RESTful style 
+ - upgrade library versions
+ - docker!
+ - add more machine learning algorithms to improve the recommendations. Adding more flows to the machine learning workflow.
+
+
+have fun in the process!
+
+[1]: https://dl.acm.org/citation.cfm?id=1608614
+[2]: https://spark.apache.org/docs/2.2.0/ml-collaborative-filtering.html
+
+Thank you @emecas.
