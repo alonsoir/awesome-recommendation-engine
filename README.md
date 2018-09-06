@@ -29,7 +29,9 @@ I am going to use some ideas from a previous work:
 [recomendation-spark-engine](https://github.com/alonsoir/recomendation-spark-engine)
 
 Actually the project can push data to kafka topic, the spark streaming process can recover data from the topic and
-save them into mongo instance.
+save them into mongo instance. Attention, I've only had time to test it with kafka 0.8.1. To use it with later versions, you would have to edit the build.sbt file and change the version of the library. Open a PR in case there are problems and we see it. 
+
+To get kafka and zookeeper up and running, please follow the instructions on this website. https://kafka.apache.org/081/documentation.html#quickstart
 
 ### How to build 
 The project uses sbt with pack support to build the unix style commands described aboved:
