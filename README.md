@@ -33,6 +33,11 @@ save them into mongo instance. Attention, I've only had time to test it with kaf
 
 To get kafka and zookeeper up and running, please follow the instructions on this website. https://kafka.apache.org/081/documentation.html#quickstart
 
+To get a mongo instance up and running, please follow the instructions on this website.
+https://www.codecademy.com/articles/tdd-setup-mongodb-2
+
+
+
 ### How to build 
 The project uses sbt with pack support to build the unix style commands described aboved:
 
