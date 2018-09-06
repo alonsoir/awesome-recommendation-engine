@@ -36,9 +36,14 @@ To get kafka and zookeeper up and running, please follow the instructions on thi
 To get a mongo instance up and running, please follow the instructions on this website.
 https://www.codecademy.com/articles/tdd-setup-mongodb-2
 
-Then, you must create a database instance and a collection with the same data that you are providing in your src/main/resources/references.conf file. To do that, start the server with mongod daemon command, then open a mongo session and run the next commands provided by the instructions provided on this website.
+Then, you must create a database instance and a collection with the same data that you are providing in your src/main/resources/references.conf file. To do that, start the server with mongod daemon command, then open a mongo session just typing mongo in another terminal, next you have to run the next commands provided by the instructions provided on this website.
 https://www.tutorialspoint.com/mongodb/mongodb_create_database.htm
 https://www.tutorialspoint.com/mongodb/mongodb_create_collection.htm
+
+### Possible Troubleshooting with mongo
+Maybe, as me, you are in trouble to run again the daemon after upgrading mongo. 
+I found useful this thread in Stackoverflow. 
+https://stackoverflow.com/questions/21448268/how-to-set-mongod-dbpath
 
 ### How to build 
 The project uses sbt with pack support to build the unix style commands described aboved:
