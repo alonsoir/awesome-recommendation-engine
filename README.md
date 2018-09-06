@@ -31,6 +31,66 @@ I am going to use some ideas from a previous work:
 Actually the project can push data to kafka topic, the spark streaming process can recover data from the topic and
 save them into mongo instance.
 
+### How to build 
+The project uses sbt with pack support to build the unix style commands described aboved:
+
+	$ sbt clean pack
+	[info] Loading project definition from /Users/aironman/awesome-recommendation-engine/project
+	[info] Set current project to my-recommendation-spark-engine (in build file:/Users/aironman/awesome-recommendation-engine/)
+	[success] Total time: 0 s, completed 06-sep-2018 12:12:40
+	[info] Updating {file:/Users/aironman/awesome-recommendation-engine/}awesome-recommendation-engine...
+	[info] Resolving org.scala-lang#scalap;2.10.4 ...
+	[info] Done updating.
+	[warn] Scala version was updated by one of library dependencies:
+	[warn] 	* org.scala-lang:scala-compiler:2.10.0 -> 2.10.2
+	...
+	[info] Packaging /Users/aironman/awesome-recommendation-engine/target/scala-2.10/my-recommendation-spark-engine_2.10-1.0-SNAPSHOT.jar ...
+	[info] Done packaging.
+	[info] Creating a distributable package in target/pack
+	...
+	[info] Create a bin folder: target/pack/bin
+	[info] Generating launch scripts
+	[info] main class for twitter-producer: example.producer.TwitterProducer
+	[info] Generating target/pack/bin/twitter-producer
+	[info] Generating target/pack/bin/twitter-producer.bat
+	[info] main class for producer-stream-example: example.producer.ProducerStreamExample
+	[info] Generating target/pack/bin/producer-stream-example
+	[info] Generating target/pack/bin/producer-stream-example.bat
+	[info] main class for amazon-producer-example: example.producer.AmazonProducerExample
+	[info] Generating target/pack/bin/amazon-producer-example
+	[info] Generating target/pack/bin/amazon-producer-example.bat
+	[info] main class for direct-kafka-word-count: example.spark.DirectKafkaWordCount
+	[info] Generating target/pack/bin/direct-kafka-word-count
+	[info] Generating target/pack/bin/direct-kafka-word-count.bat
+	[info] main class for amazon-kafka-connector: example.spark.AmazonKafkaConnector
+	[info] Generating target/pack/bin/amazon-kafka-connector
+	[info] Generating target/pack/bin/amazon-kafka-connector.bat
+	[info] main class for kafka-connector: example.spark.KafkaConnector
+	[info] Generating target/pack/bin/kafka-connector
+	[info] Generating target/pack/bin/kafka-connector.bat
+	[info] packed resource directories = /Users/aironman/awesome-recommendation-engine/src/pack
+	[info] Generating target/pack/Makefile
+	[info] Generating target/pack/VERSION
+	[info] done.
+	[success] Total time: 61 s, completed 06-sep-2018 12:13:41
+
+After running sbt clean pack within your source folder, you can see unix styled commands within the target/pack/bin folder.
+
+	$ ls
+	LICENSE			activator.properties	log-cleaner.log		ratings.csv		target
+	README.md		build.sbt		project			src
+	$ cd target/
+	$ ls
+	pack			resolution-cache	scala-2.10		streams
+	$ cd pack/
+	$ ls
+	Makefile	VERSION		bin		lib
+	$ ls bin/
+	amazon-kafka-connector		amazon-producer-example		direct-kafka-word-count		kafka-connector			producer-stream-example		twitter-producer
+	amazon-kafka-connector.bat	amazon-producer-example.bat	direct-kafka-word-count.bat	kafka-connector.bat		producer-stream-example.bat	twitter-producer.bat
+	
+Before running the commands, you will need a kafka node running with a topic of your choice. The next command, amazon-kafka-connector is running with a kafka node running in your localhost using the port 9092. The topic is amazonRatingsTopic.
+
 ### Actual output:
     $ ./amazon-kafka-connector 127.0.0.1:9092 amazonRatingsTopic
 	  Initializing Streaming Spark Context and kafka connector...
