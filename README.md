@@ -1,6 +1,6 @@
 # Awesome Recommendation Engine
 
-The purpose of this project is to learn the basics about how to code a almost near real time 
+The purpose of this project is to practise the basics about how to code a almost near real time 
 rating based recommendation engine. The simple idea is to calculate recomendations of 
 different items using notes that other users have given to other products, 
 recalculating as quickly as possible, that is, as soon as the note has arrived in the system.
